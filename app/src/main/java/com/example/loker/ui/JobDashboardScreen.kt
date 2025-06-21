@@ -4,6 +4,7 @@ package com.example.loker.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -49,6 +50,9 @@ fun JobDashboardScreen(
     viewModel: JobDashboardViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    // [FIX] Ambil juga state query dan kategori dari ViewModel
+    val query by viewModel.query.collectAsState()
+    val selectedCategory by viewModel.selectedCategory.collectAsState()
 
     Scaffold(
         topBar = { TopBar(navController = navController) },
@@ -64,9 +68,14 @@ fun JobDashboardScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
                 is DashboardUiState.Success -> {
+                    // [FIX 2] Kirim state dan event handler baru ke DashboardContent
                     DashboardContent(
                         navController = navController,
                         successState = state.data,
+                        query = query,
+                        selectedCategory = selectedCategory,
+                        onQueryChange = viewModel::onQueryChange, // Kirim fungsi onQueryChange
+                        onCategoryChange = viewModel::onCategoryChange, // Kirim fungsi onCategoryChange
                         onBookmarkToggle = { jobId -> viewModel.toggleBookmark(jobId) }
                     )
                 }
@@ -86,9 +95,25 @@ fun JobDashboardScreen(
 private fun DashboardContent(
     navController: NavController,
     successState: DashboardUiSuccessState,
+    // Terima parameter baru
+    query: String,
+    selectedCategory: String,
+    onQueryChange: (String) -> Unit,
+    onCategoryChange: (String) -> Unit,
     onBookmarkToggle: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val filteredRecentJobs = remember(query, selectedCategory, successState.recentJobs) {
+        val jobsByCategory = if (selectedCategory == "All") {
+            successState.recentJobs
+        } else {
+            successState.recentJobs.filter { it.jobType.equals(selectedCategory, ignoreCase = true) }
+        }
+        // Dari hasil filter kategori, filter lagi berdasarkan teks query
+        jobsByCategory.filter {
+            it.title.contains(query, ignoreCase = true) || it.companyName.contains(query, ignoreCase = true)
+        }
+    }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -98,7 +123,7 @@ private fun DashboardContent(
         Spacer(Modifier.height(16.dp))
         SearchBar(
             query = query,
-            onQueryChange = viewModel::onQueryChange
+            onQueryChange = onQueryChange
         )
         Spacer(Modifier.height(24.dp))
         SuggestedJobsSection(
@@ -110,14 +135,17 @@ private fun DashboardContent(
         Spacer(Modifier.height(24.dp))
         RecentJobsSection(
             navController = navController,
-            jobs = successState.recentJobs,
+            // [FIX 5] Gunakan daftar yang sudah difilter
+            jobs = filteredRecentJobs,
             bookmarkedJobIds = successState.bookmarkedJobIds,
+            // Kirim state kategori dan event handler ke bawah
+            selectedCategory = selectedCategory,
+            onCategoryChange = onCategoryChange,
             onBookmarkToggle = onBookmarkToggle
         )
         Spacer(Modifier.height(16.dp))
     }
 }
-
 @Composable
 private fun SuggestedJobsSection(
     navController: NavController,
@@ -126,15 +154,63 @@ private fun SuggestedJobsSection(
     onBookmarkToggle: (String) -> Unit
 ) {
     Column {
-        SectionHeader(title = "Suggested Jobs", onSeeAllClick = { })
+        SectionHeader(title = "Suggested Jobs", onSeeAllClick = { /* TODO */ })
         Spacer(Modifier.height(8.dp))
         if (jobs.isEmpty()) {
             Text("Tidak ada lowongan yang disarankan.", color = Color.Gray)
         } else {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                items(jobs) { job ->
+                items(jobs, key = { "suggested-${it.id}" }) { job ->
                     val isBookmarked = job.id in bookmarkedJobIds
                     SuggestedJobCard(
+                        navController = navController,
+                        job = job,
+                        isBookmarked = isBookmarked,
+                        onBookmarkClick = { onBookmarkToggle(job.id) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecentJobsSection(
+    navController: NavController,
+    jobs: List<Job>,
+    bookmarkedJobIds: List<String>,
+    // [FIX] Terima state dan event handler, jangan buat state lokal
+    selectedCategory: String,
+    onCategoryChange: (String) -> Unit,
+    onBookmarkToggle: (String) -> Unit
+) {
+    Column {
+        SectionHeader(title = "Recent Jobs", onSeeAllClick = { })
+        Spacer(Modifier.height(16.dp))
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(Job.JOB_CATEGORIES) { category ->
+                FilterChip(
+                    selected = category == selectedCategory,
+                    // [FIX 7] Panggil event handler dari ViewModel
+                    onClick = { onCategoryChange(category) },
+                    label = { Text(category) }
+                )
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        if (jobs.isEmpty()) {
+            Text("Tidak ada lowongan yang cocok.", color = Color.Gray)
+        } else {
+            // [FIX 8] Ubah Column menjadi LazyColumn agar lebih efisien
+            // dan beri tinggi tetap agar tidak konflik dengan parent scroll
+            LazyColumn(
+                modifier = Modifier.heightIn(max = 500.dp), // Beri tinggi dinamis maks 500.dp
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                items(jobs, key = { it.id }) { job ->
+                    val isBookmarked = job.id in bookmarkedJobIds
+                    RecentJobCard(
                         navController = navController,
                         job = job,
                         isBookmarked = isBookmarked,

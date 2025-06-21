@@ -11,6 +11,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 // Ubah Success state untuk menyertakan daftar ID bookmark
@@ -19,6 +20,7 @@ data class DashboardUiSuccessState(
     val recentJobs: List<Job> = emptyList(),
     val bookmarkedJobIds: List<String> = emptyList()
 )
+
 
 sealed interface DashboardUiState {
     object Loading : DashboardUiState
@@ -34,10 +36,23 @@ class JobDashboardViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<DashboardUiState>(DashboardUiState.Loading)
     val uiState: StateFlow<DashboardUiState> = _uiState
 
+    private val _query = MutableStateFlow("")
+    val query = _query.asStateFlow()
+
+    private val _selectedCategory = MutableStateFlow("All")
+    val selectedCategory = _selectedCategory.asStateFlow()
+
     init {
         fetchAllData()
     }
 
+    fun onQueryChange(newQuery: String) {
+        _query.value = newQuery
+    }
+
+    fun onCategoryChange(category: String) {
+        _selectedCategory.value = category
+    }
     private fun fetchAllData() {
         _uiState.value = DashboardUiState.Loading
 

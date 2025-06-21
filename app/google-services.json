@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "74954399447",
+    "project_id": "loker-a672f",
+    "storage_bucket": "loker-a672f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:74954399447:android:9e0695e4555e4b9c4a9a92",
+        "android_client_info": {
+          "package_name": "com.example.loker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChQKk0oOAMkdbtv2WiDOEfL5L7c0aiSmE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

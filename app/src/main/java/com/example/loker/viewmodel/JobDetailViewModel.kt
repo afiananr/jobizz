@@ -4,6 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.loker.model.Job
+import com.example.loker.model.Notification
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,5 +60,38 @@ class JobDetailViewModel : ViewModel() {
                     _uiState.value = JobDetailUiState.Error(exception.localizedMessage ?: "Error tidak diketahui")
                 }
         }
+    }
+    fun applyForJob(jobId: String, jobTitle: String) {
+        val currentUser = Firebase.auth.currentUser
+        if (currentUser == null) {
+            // Handle jika user tidak login
+            return
+        }
+
+        val userId = currentUser.uid
+        val db = Firebase.firestore
+
+        // Anda bisa tambahkan logika untuk menyimpan lamaran di sini,
+        // misalnya menambahkan userId ke sub-koleksi 'applicants' di dokumen pekerjaan.
+        // db.collection("jobs").document(jobId).collection("applicants").document(userId).set(mapOf("appliedAt" to Timestamp.now()))
+
+        // Setelah itu, buat notifikasi untuk user
+        val notificationMessage = "Anda berhasil melamar untuk posisi \"$jobTitle\". Mohon tunggu informasi selanjutnya."
+        val notification = Notification(
+            userId = userId,
+            message = notificationMessage,
+            timestamp = Timestamp.now()
+        )
+
+        // Simpan notifikasi ke sub-koleksi di dalam dokumen user
+        db.collection("users").document(userId)
+            .collection("notifications")
+            .add(notification)
+            .addOnSuccessListener {
+                // Berhasil membuat notifikasi
+            }
+            .addOnFailureListener {
+                // Gagal membuat notifikasi
+            }
     }
 }

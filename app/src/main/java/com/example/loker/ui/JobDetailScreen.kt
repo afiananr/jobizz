@@ -1,6 +1,7 @@
 // Lokasi: app/src/main/java/com/example/loker/ui/JobDetailScreen.kt
 package com.example.loker.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+//import coil.request.GlobalLifecycle.currentState
 import com.example.loker.model.Job
 import com.example.loker.viewmodel.JobDetailUiState
 import com.example.loker.viewmodel.JobDetailViewModel
@@ -46,6 +49,7 @@ fun JobDetailScreen(
     }
 
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -60,14 +64,28 @@ fun JobDetailScreen(
         },
         bottomBar = {
             // Menampilkan tombol Apply hanya jika data berhasil dimuat
-            if (uiState is JobDetailUiState.Success) {
-                Box(modifier = Modifier.padding(16.dp)) {
-                    Button(
-                        onClick = { /* TODO: Implement apply logic */ },
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(vertical = 16.dp)
-                    ) {
-                        Text("Apply for Job")
+            val currentState = uiState
+            if (currentState is JobDetailUiState.Success) {
+                val job = currentState.job
+                // Hanya tampilkan tombol jika job tidak null
+                if (job != null) {
+                    Box(modifier = Modifier.padding(16.dp)) {
+                        Button(
+                            onClick = {
+                                // Sekarang 'job' bisa diakses di sini tanpa error
+                                viewModel.applyForJob(job.id, job.title)
+
+                                // Beri feedback ke pengguna
+                                Toast.makeText(context, "Lamaran berhasil dikirim!", Toast.LENGTH_SHORT).show()
+
+                                // Kembali ke halaman sebelumnya
+                                navController.popBackStack()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(vertical = 16.dp)
+                        ) {
+                            Text("Apply for Job")
+                        }
                     }
                 }
             }

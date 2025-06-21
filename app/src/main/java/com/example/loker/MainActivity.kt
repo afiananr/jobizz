@@ -21,7 +21,7 @@ import com.example.loker.ui.CreatePostScreen
 import com.example.loker.ui.JobDashboardScreen
 import com.example.loker.ui.JobDetailScreen
 import com.example.loker.ui.LoginScreen
-import com.example.loker.ui.MessagesScreen
+import com.example.loker.ui.NotificationScreen
 import com.example.loker.ui.PostDetailScreen
 import com.example.loker.ui.ProfileScreen
 import com.example.loker.ui.RegisterScreen
@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
                             CreatePostScreen(navController = navController)
                         }
                         composable("profile") { ProfileScreen(navController = navController) }
-                        composable("messages") { MessagesScreen(navController = navController) }
+                        composable("messages") { NotificationScreen(navController = navController) }
 
                         // Rute untuk Detail Lowongan
                         composable(

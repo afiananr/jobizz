@@ -114,6 +114,7 @@ private fun DashboardContent(
             it.title.contains(query, ignoreCase = true) || it.companyName.contains(query, ignoreCase = true)
         }
     }
+
     Column(
         modifier = modifier
             .fillMaxSize()

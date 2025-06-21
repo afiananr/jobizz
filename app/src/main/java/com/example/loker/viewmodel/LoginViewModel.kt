@@ -7,10 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 sealed interface LoginUiState {
     object Idle : LoginUiState
@@ -59,6 +62,22 @@ class LoginViewModel : ViewModel() {
                         _loginUiState.value = LoginUiState.Error(task.exception?.localizedMessage ?: "Login Gagal.")
                     }
                 }
+        }
+    }
+    private fun saveFcmToken() {
+        viewModelScope.launch {
+            try {
+                val token = Firebase.messaging.token.await()
+                val userId = Firebase.auth.currentUser?.uid
+                if (userId != null) {
+                    Firebase.firestore.collection("users").document(userId)
+                        .update("fcmToken", token)
+                        .addOnSuccessListener { Log.d("FCM", "FCM Token saved successfully.") }
+                        .addOnFailureListener { e -> Log.w("FCM", "Error saving FCM Token", e) }
+                }
+            } catch (e: Exception) {
+                Log.w("FCM", "Fetching FCM registration token failed", e)
+            }
         }
     }
 }

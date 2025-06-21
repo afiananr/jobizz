@@ -29,6 +29,7 @@ class ProfileViewModel : ViewModel() {
     private val _logoutState = MutableStateFlow(false)
     val logoutState: StateFlow<Boolean> = _logoutState
 
+
     /**
      * Mengambil data profil dari pengguna yang SEDANG LOGIN.
      */

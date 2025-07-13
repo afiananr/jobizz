@@ -223,40 +223,6 @@ private fun RecentJobsSection(
     }
 }
 
-@Composable
-private fun RecentJobsSection(
-    navController: NavController,
-    jobs: List<Job>,
-    bookmarkedJobIds: List<String>,
-    onBookmarkToggle: (String) -> Unit
-) {
-    var selectedCategory by remember { mutableStateOf("All") }
-    Column {
-        SectionHeader(title = "Recent Jobs", onSeeAllClick = { })
-        Spacer(Modifier.height(16.dp))
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(Job.JOB_CATEGORIES) { category ->
-                FilterChip(selected = category == selectedCategory, onClick = { selectedCategory = category }, label = { Text(category) })
-            }
-        }
-        Spacer(Modifier.height(16.dp))
-        if (jobs.isEmpty()) {
-            Text("Tidak ada lowongan terbaru.", color = Color.Gray)
-        } else {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                jobs.forEach { job ->
-                    val isBookmarked = job.id in bookmarkedJobIds
-                    RecentJobCard(
-                        navController = navController,
-                        job = job,
-                        isBookmarked = isBookmarked,
-                        onBookmarkClick = { onBookmarkToggle(job.id) }
-                    )
-                }
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -270,7 +236,9 @@ private fun SuggestedJobCard(
         onClick = { navController.navigate("detail/${job.id}") },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF5F5BFF)),
-        modifier = Modifier.width(280.dp)
+        modifier = Modifier
+            .width(280.dp)
+            .height(160.dp) // [PERBAIKAN 1] Tinggi kartu dibuat tetap
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -281,9 +249,16 @@ private fun SuggestedJobCard(
                         text = job.title,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
-                        maxLines = 1, // <-- Batasi teks hanya dalam 1 baris
-                        overflow = TextOverflow.Ellipsis)
-                    Text(job.companyName, fontSize = 14.sp, color = Color.LightGray)
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = job.companyName,
+                        fontSize = 14.sp,
+                        color = Color.LightGray,
+                        maxLines = 1, // [PERBAIKAN 2] Nama PT dibatasi 1 baris
+                        overflow = TextOverflow.Ellipsis // [PERBAIKAN 3] Ditambah elipsis
+                    )
                 }
                 IconButton(onClick = onBookmarkClick) {
                     Icon(
@@ -294,7 +269,15 @@ private fun SuggestedJobCard(
                 }
             }
             Spacer(Modifier.height(16.dp))
-            Text(job.salaryRange, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color.White)
+            // Updated: Smaller font size for salary
+            Text(
+                text = job.salaryRange,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp, // [PERBAIKAN 4] Ukuran gaji lebih kecil
+                color = Color.White,
+                maxLines = 1, // [PERBAIKAN 5] Gaji dibatasi 1 baris
+                overflow = TextOverflow.Ellipsis // [PERBAIKAN 6] Ditambah elipsis
+            )
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 JobTag(text = job.jobType, isSuggested = true)
@@ -316,16 +299,38 @@ fun RecentJobCard(
         onClick = { navController.navigate("detail/${job.id}") },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp) // [PERBAIKAN 7] Tinggi kartu dibuat tetap
     ) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             AsyncImage(model = job.companyLogoUrl, contentDescription = null, modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(Color.LightGray))
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(job.title, fontWeight = FontWeight.Bold)
-                Text(job.companyName, fontSize = 14.sp, color = Color.Gray)
+                Text(
+                    text = job.title,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1, // [PERBAIKAN 8] Judul pekerjaan dibatasi 1 baris
+                    overflow = TextOverflow.Ellipsis // [PERBAIKAN 9] Ditambah elipsis
+                )
+                Text(
+                    text = job.companyName,
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    maxLines = 1, // [PERBAIKAN 10] Nama PT dibatasi 1 baris
+                    overflow = TextOverflow.Ellipsis // [PERBAIKAN 11] Ditambah elipsis
+                )
                 Spacer(Modifier.height(4.dp))
-                Text(job.salaryRange, fontWeight = FontWeight.SemiBold, color = Color(0xFF5F5BFF))
+                // Apply smaller font size to salary
+                Text(
+                    text = job.salaryRange,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp, // [PERBAIKAN 12] Ukuran gaji lebih kecil
+                    color = Color(0xFF5F5BFF),
+                    maxLines = 1, // [PERBAIKAN 13] Gaji dibatasi 1 baris
+                    overflow = TextOverflow.Ellipsis // [PERBAIKAN 14] Ditambah elipsis
+                )
             }
             IconButton(onClick = onBookmarkClick) {
                 Icon(

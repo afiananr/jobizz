@@ -3,7 +3,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
-    id("org.jetbrains.kotlin.plugin.compose") // <-- TERAPKAN PLUGIN DI SINI
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -59,23 +59,15 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     // --- Firebase ---
-    // [PERUBAHAN PENTING 2] Hanya menggunakan SATU Firebase BOM versi terbaru
-    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
-    // Cloud Firestore (versi diatur oleh BOM)
     implementation("com.google.firebase:firebase-firestore-ktx")
-    // [PERUBAHAN PENTING 3] Menggunakan versi KTX untuk Analytics
     implementation("com.google.firebase:firebase-analytics-ktx")
-    // Database Firestore
     implementation("com.google.firebase:firebase-auth-ktx")
 
-    // --- Library Lainnya ---
-    // Coil untuk memuat gambar dari URL
+    // --- Library ---
     implementation("io.coil-kt:coil-compose:2.6.0")
-    // Material Components untuk support tema XML
     implementation("com.google.android.material:material:1.12.0")
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity)
-
 
     // --- Dependensi untuk Testing ---
     testImplementation("junit:junit:4.13.2")
